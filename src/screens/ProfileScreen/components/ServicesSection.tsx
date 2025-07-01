@@ -1,209 +1,278 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import React, { useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Animated,
+  Dimensions,
+} from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const SERVICES = [
-  {
-    type: 'House Sitting',
-    icon: '🏠',
-    price: 40,
-    unit: 'per night',
-    details: [
-      { label: 'Holiday Rate', value: 78, unit: 'per night' },
-      { label: 'Additional Dog Rate', value: 10, unit: 'per Dog per night' },
-      { label: 'Puppy Rate', value: 65, unit: 'per night' },
-      { label: 'Cat Care', value: 50, unit: 'per night' },
-      { label: 'Additional Cat', value: 10, unit: 'per night rate' },
-      { label: 'Extended Care', value: 30, unit: 'per night rate' },
-    ],
-    icons: ['Cats', '0-15', '16-40', '41-100', '101+'],
-  },
-  {
-    type: 'Drop-In Visits',
-    icon: '🐾',
-    price: 20,
-    unit: 'per visit',
-    details: [
-      { label: '60 minute rate', value: 30, unit: 'per visit' },
-      { label: 'Holiday Rate', value: 30, unit: 'per night' },
-      { label: 'Additional Dog Rate', value: 5, unit: 'per Dog per visit' },
-      { label: 'Puppy Rate', value: 20, unit: 'per visit' },
-      { label: 'Cat Care', value: 20, unit: 'per visit' },
-      { label: 'Additional Cat', value: 5, unit: 'per visit' },
-      { label: 'Booking of 5 days or more', value: 20, unit: 'per visit' },
-      { label: 'Bathing / Grooming', value: 20, unit: 'each' },
-    ],
-    icons: ['Cats', '0-15', '16-40', '41-100', '101+'],
-  },
-  {
-    type: 'Dog Walking',
-    icon: '🐕',
-    price: 15,
-    unit: 'per walk',
-    details: [
-      { label: '60 minute rate', value: 20, unit: 'per walk' },
-      { label: 'Holiday Rate', value: 19, unit: 'per walk' },
-      { label: 'Additional Dog Rate', value: 5, unit: 'per dog per walk' },
-      { label: 'Puppy Rate', value: 10, unit: 'per walk' },
-    ],
-    icons: ['0-15', '16-40', '41-100', '101+'],
-  },
-];
+const ITEM_HEIGHT = 50;
+const WINDOW_HEIGHT = Dimensions.get('window').height;
 
-const ServicesSection = () => {
-  const [selectedService, setSelectedService] = useState('House Sitting');
+const ProfileScreen = () => {
+  const [selectedService, setSelectedService] = useState('Drop-In Visits');
   const [selectedDate, setSelectedDate] = useState('');
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const scrollRef = useRef(null);
+  const [selectedIndex, setSelectedIndex] = useState(1);
+
+  const serviceOptions = ['Home Sitting', 'Drop-In Visits', 'Dog Walking'];
+
+  const onScrollEnd = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
+    const index = Math.round(e.nativeEvent.contentOffset.y / ITEM_HEIGHT);
+    setSelectedIndex(index);
+    setSelectedService(serviceOptions[index]);
+    if (scrollRef.current && typeof (scrollRef.current as any).scrollTo === 'function') {
+      (scrollRef.current as any).scrollTo({ y: index * ITEM_HEIGHT, animated: true });
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      {SERVICES.map((service, idx) => (
-        <View key={service.type} style={styles.serviceBlock}>
-          <View style={styles.serviceHeader}>
-            <Text style={styles.serviceIcon}>{service.icon}</Text>
-            <Text style={styles.serviceTitle}>{service.type}</Text>
-            <Text style={styles.servicePrice}>${service.price}</Text>
-            <Text style={styles.serviceUnit}>{service.unit}</Text>
-          </View>
-          {service.details.map((detail, i) => (
-            <View key={i} style={styles.detailRow}>
-              <Text style={styles.detailLabel}>{detail.label}</Text>
-              <Text style={styles.detailValue}>${detail.value} <Text style={styles.detailUnit}>{detail.unit}</Text></Text>
+    <ScrollView style={styles.container}>
+      {/* Services */}
+      <View style={styles.serviceSection}>
+        <ServiceCard
+          title="House Sitting"
+          price="$40"
+          rate="per night"
+          details={[
+            ['Holiday Rate', '$78'],
+            ['Additional Dog Rate', '+ $10'],
+            ['Puppy Rate', '$65'],
+            ['Cat Care', '$50'],
+            ['Additional Cat', '+ $10'],
+            ['Extended Care', '50-100%'],
+          ]}
+        />
+        <PetIcons />
+        <ServiceCard
+          title="Drop-In Visits"
+          price="$20"
+          rate="per visit"
+          details={[
+            ['60 min rate', '+ $30'],
+            ['Holiday Rate', '$30'],
+            ['Additional Dog Rate', '+ $5'],
+            ['Puppy Rate', '$20'],
+            ['Cat Care', '$20'],
+            ['Additional Cat', '+ $5'],
+            ['Booking of 5+ days', '+ $20'],
+            ['Bathing / Grooming', '+ $20'],
+          ]}
+        />
+        <PetIcons />
+        <ServiceCard
+          title="Dog Walking"
+          price="$15"
+          rate="per walk"
+          details={[
+            ['60 min walk', '+ $20'],
+            ['Holiday Rate', '$19'],
+            ['Additional Dog Rate', '+ $5'],
+            ['Puppy Rate', '$10'],
+          ]}
+        />
+        <PetIcons />
+      </View>
+
+      {/* Calendar */}
+      <View style={styles.calendarSection}>
+        <Text style={styles.calendarTitle}>Calendar</Text>
+        <TouchableOpacity style={styles.dropdown}>
+          <Text style={styles.dropdownText}>{selectedService}</Text>
+          <Icon name="chevron-down" size={20} />
+        </TouchableOpacity>
+        <Calendar
+          onDayPress={(day) => setSelectedDate(day.dateString)}
+          markedDates={{
+            [selectedDate]: { selected: true, selectedColor: '#7a8659' },
+          }}
+          theme={{ todayTextColor: '#7a8659' }}
+        />
+        <Text style={styles.doneText}>Done</Text>
+      </View>
+
+      {/* Vertical Picker */}
+      <View style={styles.bottomNavVertical}>
+        <Animated.ScrollView
+          ref={scrollRef}
+          showsVerticalScrollIndicator={false}
+          snapToInterval={ITEM_HEIGHT}
+          decelerationRate="fast"
+          onMomentumScrollEnd={onScrollEnd}
+          contentContainerStyle={{
+            paddingTop: ITEM_HEIGHT,
+            paddingBottom: ITEM_HEIGHT,
+          }}
+        >
+          {serviceOptions.map((option, index) => (
+            <View key={option} style={styles.navItemWrapper}>
+              <Text
+                style={[
+                  styles.navItemVertical,
+                  index === selectedIndex && styles.selectedNavItem,
+                ]}
+              >
+                {option}
+              </Text>
             </View>
           ))}
-          <View style={styles.iconRow}>
-            {service.icons.map((icon, i) => (
-              <Text key={i} style={styles.animalIcon}>{icon}</Text>
-            ))}
-          </View>
-        </View>
-      ))}
-      <View style={styles.calendarSection}>
-        <Text style={styles.calendarLabel}>Calendar</Text>
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={selectedService}
-            onValueChange={setSelectedService}
-            style={styles.picker}
-          >
-            {SERVICES.map((service) => (
-              <Picker.Item key={service.type} label={service.type} value={service.type} />
-            ))}
-          </Picker>
-        </View>
-        <View style={styles.calendar}>
-          <Calendar
-            onDayPress={(day: { dateString: string }) => setSelectedDate(day.dateString)}
-            markedDates={selectedDate ? { [selectedDate]: { selected: true, selectedColor: '#73865C' } } : {}}
-            style={{ borderRadius: 8 }}
-          />
-          <Text style={styles.calendarDone}>Done</Text>
-        </View>
-        </View>
+        </Animated.ScrollView>
       </View>
-    </View>
+
+      {/* CTA */}
+      <TouchableOpacity style={styles.cta}>
+        <Text style={styles.ctaText}>Contact this sitter</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
+const ServiceCard = ({ title, price, rate, details }) => (
+  <View style={styles.card}>
+    <View style={styles.cardHeader}>
+      <View style={styles.cardTitleContainer}>
+        <Icon name="paw" size={18} color="#7a8659" style={styles.cardIcon} />
+        <Text style={styles.cardTitle}>{title.trim()}</Text>
+      </View>
+      <Text style={styles.cardPrice}>
+        {price} <Text style={styles.rate}>{rate}</Text>
+      </Text>
+    </View>
+    {details.map(([label, value], idx) => (
+      <View style={styles.detailRow} key={idx}>
+        <Text style={styles.detailLabel}>{label}</Text>
+        <Text style={styles.detailValue}>{value}</Text>
+      </View>
+    ))}
+  </View>
+);
+
+const PetIcons = () => (
+  <View style={styles.petIconsContainer}>
+    <View style={styles.petRow}>
+      <View style={styles.petIcon}>
+        <Icon name="dog" size={24} color="#000" />
+        <Text style={styles.petLabel}>Cats</Text>
+      </View>
+      <View style={styles.petIcon}>
+        <Icon name="dog" size={24} color="#000" />
+        <Text style={styles.petLabel}>0-15 lbs</Text>
+      </View>
+    </View>
+    <View style={styles.petRow}>
+      <View style={styles.petIcon}>
+        <Icon name="dog" size={24} color="#000" />
+        <Text style={styles.petLabel}>16-40 lbs</Text>
+      </View>
+      <View style={styles.petIcon}>
+        <Icon name="dog" size={24} color="#000" />
+        <Text style={styles.petLabel}>41-100 lbs</Text>
+      </View>
+    </View>
+    <View style={[styles.petRow, { justifyContent: 'center' }]}>
+      <View style={styles.petIcon}>
+        <Icon name="dog" size={24} color="#000" />
+        <Text style={styles.petLabel}>101+ lbs</Text>
+      </View>
+    </View>
+  </View>
+);
+
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    backgroundColor: '#fff',
+  container: { flex: 1, backgroundColor: '#fff' },
+  serviceSection: { padding: 16 },
+  card: {
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    backgroundColor: '#f9f9f9',
   },
-  serviceBlock: {
-    marginBottom: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingBottom: 16,
-  },
-  serviceHeader: {
+  cardHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 8,
   },
-  serviceIcon: {
-    fontSize: 22,
-    marginRight: 8,
+  cardTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  serviceTitle: {
-    fontWeight: 'bold',
-    fontSize: 18,
-    flex: 1,
-  },
-  servicePrice: {
-    fontWeight: 'bold',
-    fontSize: 18,
-    color: '#73865C',
-    marginLeft: 8,
-  },
-  serviceUnit: {
-    fontSize: 13,
-    color: '#888',
-    marginLeft: 4,
-  },
+  cardTitle: { fontSize: 16, fontWeight: '600', marginLeft: 8 },
+  cardIcon: { position: 'absolute', left: -20 },
+  cardPrice: { color: '#7a8659', fontWeight: 'bold' },
+  rate: { fontSize: 12, color: '#555' },
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 2,
-    marginLeft: 24,
+    paddingVertical: 2,
   },
-  detailLabel: {
-    color: '#444',
-    fontSize: 14,
+  detailLabel: { color: '#555', marginTop: 25 },
+  detailValue: { color: '#7a8659', fontWeight: 'bold' },
+  petIconsContainer: {
+    marginTop: 10,
+    marginBottom: 20,
   },
-  detailValue: {
-    color: '#222',
-    fontSize: 14,
-  },
-  detailUnit: {
-    color: '#888',
-    fontSize: 12,
-  },
-  iconRow: {
+  petRow: {
     flexDirection: 'row',
-    marginTop: 8,
-    marginLeft: 24,
-    marginBottom: 8,
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
-  animalIcon: {
-    fontSize: 18,
-    marginRight: 12,
-    color: '#222',
+  petIcon: {
+    alignItems: 'center',
+    width: '45%',
   },
-  calendarSection: {
-    marginTop: 16,
-    backgroundColor: '#fafaf8',
-    borderRadius: 12,
-    padding: 12,
-  },
-  calendarLabel: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  pickerWrapper: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#eee',
-  },
-  picker: {
-    height: 40,
-    width: '100%',
-  },
-  calendar: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 8,
-    marginTop: 8,
-  },
-  calendarDone: {
-    textAlign: 'right',
-    color: '#888',
+  petLabel: {
+    fontSize: 12,
     marginTop: 4,
-    fontSize: 14,
   },
+  calendarSection: { padding: 16 },
+  calendarTitle: { fontSize: 16, fontWeight: '600', marginBottom: 8 },
+  dropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderWidth: 1,
+    borderRadius: 6,
+    borderColor: '#ccc',
+    marginBottom: 12,
+  },
+  dropdownText: { fontSize: 14 },
+  doneText: { textAlign: 'center', color: '#7a8659', marginTop: 12 },
+  bottomNavVertical: {
+    height: 150,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 16,
+    overflow: 'hidden',
+  },
+  navItemWrapper: {
+    height: ITEM_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  navItemVertical: {
+    fontSize: 16,
+    color: '#999',
+  },
+  selectedNavItem: {
+    color: '#7a8659',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  cta: {
+    backgroundColor: '#7a8659',
+    margin: 16,
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  ctaText: { color: '#fff', fontWeight: '600' },
 });
 
-export default ServicesSection; 
+export default ProfileScreen;

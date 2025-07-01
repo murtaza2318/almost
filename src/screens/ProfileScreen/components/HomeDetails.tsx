@@ -23,8 +23,21 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     paddingHorizontal: 16,
   },
-  heading: { fontWeight: 'bold', fontSize: 16, marginBottom: 8 },
-  item: { marginBottom: 4, color: '#555' },
+  heading: { 
+    fontWeight: 'normal', 
+    fontSize: 25, 
+    marginBottom: 8, 
+    marginLeft: 15,
+    fontFamily: 'Poppins-SemiBold' 
+  },
+  item: { 
+    marginBottom: 4, 
+    color: '#555',
+    fontSize: 20, 
+    marginLeft: 15,
+    marginTop: 5,
+    fontFamily: 'Poppins-Regular'
+  },
   viewAll: { color: 'green', marginTop: 4 },
 });
 

@@ -14,7 +14,7 @@ import { RFValue } from 'react-native-responsive-fontsize';
 import { CustomIcon } from '../../components/CustomIcon';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, FONT_POPPINS } from '../../utils/theme';
-import CountryPicker from 'react-native-country-picker-modal';
+import CountryPicker from '@realtril/react-native-country-picker-modal';
 // @ts-ignore
 
 
